@@ -20,11 +20,11 @@ def create_connection(db_name, db_user, db_password, db_host):
         print(f"{err}")
     return connection
 
-connect = create_connection("postgres", "postgres", "mydb", "localhost", )
+connect = create_connect("postgres", "postgres", "mydb", "localhost", )
 
 
 # ф-ія створення власної бази даних
-def create_database(connect, query):
+def creat_database(connect, query):
     connect.autocommit = True
     curs = connect.cursor()
     try:
@@ -35,10 +35,10 @@ def create_database(connect, query):
 
 
 # створюємо БД
-create_database_query = "CREATE DATABASE DB_lab1"
-create_database(connect, create_database_query)
+creat_database_query = "CREATE DATABASE DB_lab1"
+creat_database(connect, create_database_query)
 
-connect = create_connection("DB_lab1", "postgres", "mydb", "localhost", )
+connect = create_connect("DB_lab1", "postgres", "mydb", "localhost", )
 
 def execute_query(connect, query):
     connect.autocommit = True
@@ -54,7 +54,7 @@ def execute_query(connect, query):
 
 """ якщо таблиця з такою назвою уже існує - розкомітьте наступні 2 рядки для її видалення"""
 """delete_ZNO_2019_2020_table = """ DROP TABLE IF EXISTS physic_2019_2020"""
-execute_query(connection, delete_physic_2019_2020_table)"""
+execute_query(connect, delete_physic_2019_2020_table)"""
 
 create_ZNO_2019_2020_table = """
 CREATE TABLE IF NOT EXISTS physic_2019_2020 (
@@ -194,7 +194,7 @@ execute_query(connect, create_physic_2019_2020_table)
 def insert_data_from_csv_to_table(f, year, connect, cursor):
 
 
-    with open(f, "r", encoding="cp1251") as csv_file:
+    with open(f, "r", encoding="cp1251") as csvfile:
 
         # cписок назв колонок(потрібен для подальшого реформування даних в потрібні формати)
         columns = ["OUTID", "Birth", "SEXTYPENAME", "REGNAME", "AREANAME", "TERNAME", "REGTYPENAME", "TerTypeName",
@@ -218,7 +218,7 @@ def insert_data_from_csv_to_table(f, year, connect, cursor):
                    "spaBall100",
                    "spaBall12", "spaDPALevel", "spaBall", "spaPTName", "spaPTRegName", "spaPTAreaName", "spaPTTerName"]
 
-        reader = csv.DictReader(csv_file, delimiter=';')
+        reader = csv.DictReader(csvfile, delimiter=';')
 
         # к-сть закомічених партій
         quantity_parties = 0
@@ -268,29 +268,28 @@ def insert_data_from_csv_to_table(f, year, connect, cursor):
                 if e.pgcode == psycopg2.errorcodes.ADMIN_SHUTDOWN:
                     print("Зникло з'єднання з базою")
 
-                    connection_restored = False
-                    while not connection_restored:
+                    connect_restored = False
+                    while not connect_restored:
                         try:
                             # намагаємось підключитись до бази даних
-                            """для підключення до Вашої БД замініть значення в 3 лапках на власний пароль"""
-                            connect = create_connection("lab1", "postgres", "Maya!maks15", "localhost", )
-                            cursor = connect.cursor()
+                            connect = create_connect("lab1", "postgres", "mydb", "localhost", )
+                            curs = connect.cursor()
 
                             connect_restored = True
 
                         except Error as err:
                             pass
 
-                    print("З'єднання з базою відновлено")
-                    csv_file.seek(0, 0)
-                    reader = itertools.islice(csv.DictReader(csv_file, delimiter=';'),
+                    print("З'єднання відновлено")
+                    csvfile.seek(0, 0)
+                    reader = itertools.islice(csv.DictReader(csvfile, delimiter=';'),
                                               quantity_parties * size_parties, None)
 
     return connect, curs
 
 # SQL запит ( порівняти найкращий бал з укр.мови і літератури у 2020 і 2019 році)
 squery = '''
-    select_query = '''
+    
     SELECT regname, year, max(physBall100)
     FROM tbl_zno_data
     WHERE physTestStatus = 'Зараховано'
@@ -301,12 +300,12 @@ curs.execute(squery)
 
 with open('physic_2019_2020.csv', 'w', encoding="utf-8") as result:
     save = csv.writer(result)
-    save.saverow(['Область', 'Максимальний бал', Рік'])
+    save.saverow(['Область', 'Максимальний бал', 'Рік'])
     row=cursor.fetchone()
     while row:
         writer.writerow(row)
-        row = cursor.fetchone()
+        row = curs.fetchone()
 
 
 curs.close()
-connect.close()'''
+connect.close()
